@@ -2,6 +2,7 @@
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using StarChart.Data;
+using StarChart.Models;
 
 namespace StarChart.Controllers
 {
@@ -52,6 +53,43 @@ namespace StarChart.Controllers
 					.Where(e => e.OrbitedObjectId == celestialObject.Id).ToList();
 			}
 			return Ok(celestialObjects);
+        }
+
+		[HttpPost]
+		public IActionResult Create([FromBody]CelestialObject celestialObject)
+        {
+			_context.CelestialObjects.Add(celestialObject);
+			_context.SaveChanges();
+			return CreatedAtRoute(
+				"GetById",
+				new {id = celestialObject.Id},
+				celestialObject
+				);
+        }
+
+		[HttpPut("{id:int}")]
+		public IActionResult Update(int id, CelestialObject celestialObject)
+        {
+			var existing = _context.CelestialObjects.Find(id);
+			if (existing == null) return NotFound();
+			existing.Name = celestialObject.Name;
+			existing.OrbitalPeriod = celestialObject.OrbitalPeriod;
+			existing.OrbitedObjectId = celestialObject.OrbitedObjectId;
+
+			_context.CelestialObjects.Update(existing);
+			_context.SaveChanges();
+
+			return NoContent();
+        }
+
+		[HttpDelete("{id:int}")]
+		public IActionResult Delete(int id)
+        {
+			var celestialObjects = _context.CelestialObjects.Where(e => e.Id == id || e.OrbitedObjectId == id);
+			if (!celestialObjects.Any()) return NotFound();
+			_context.CelestialObjects.RemoveRange(celestialObjects);
+			_context.SaveChanges();
+			return NoContent();
         }
 	}
 }
